@@ -27,6 +27,6 @@ run-default: run-on-$(DEFAULT_DEVICE)
 
 ### Make targets
 
-test: Runs tests
-build: Builds for default device
-release: Runs tests, exports and tags your build
+* test: Runs tests
+* build: Builds for default device
+* release: Runs tests, exports and tags your build
