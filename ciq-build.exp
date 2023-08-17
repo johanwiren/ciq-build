@@ -1,0 +1,38 @@
+#!/usr/bin/env expect
+
+set timeout 2
+
+set port [lindex $argv 0]
+set app_id [lindex $argv 1]
+set device [lindex $argv 2]
+set run_mode [lindex $argv 3]
+
+if { $run_mode == "test" } {
+    set run_command "\[2\]\[0\]runAllTests $app_id\r"
+} else {
+    set run_command "\[2\]\[0\]startApp $app_id\r"
+}
+
+spawn shell --transport_args=127.0.0.1:$port
+expect :> { send "ciq\r" }
+expect {
+    shellDisconnected { puts "Failed connecting to simulator"; exit 1}
+    shellConnected { exp_continue }
+}
+send "\[3\]\[$app_id\]\[1\]KI\r"
+send "\[1\]\[0\]openDevice $device\r"
+expect "deviceStarted $device"
+send $run_command
+expect appStarted
+if { $run_mode == "test" } {
+    expect "RESULTS"
+    expect {
+        "PASSED" { expect "\r"; set rc 0 }
+        "FAILED" { expect "\r"; set rc 1 }
+        "ERROR" { expect "\r"; set rc 1 }
+    }
+    expect appTerminated
+    expect "\r"
+    exit $rc
+}
+interact
